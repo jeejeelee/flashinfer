@@ -314,17 +314,21 @@ if __name__ == "__main__":
     ]
     extra_compile_args = {
         "cxx": [
-            "-O3",
-            "-Wno-switch-bool",
+            # "-O3",
+            "-g",
+            "-G",
+            # "-Wno-switch-bool",
         ],
         "nvcc": [
-            "-O3",
-            "-std=c++17",
+            # "-O3",
+            "-g",
+            "-G",
             "--threads",
             "1",
-            "-Xfatbin",
-            "-compress-all",
-            "-use_fast_math",
+            # "-Xfatbin",
+            # "-compress-all",
+            # "-use_fast_math",
+
         ],
     }
     ext_modules = []
@@ -347,32 +351,32 @@ if __name__ == "__main__":
             extra_compile_args=extra_compile_args,
         )
     )
-    ext_modules.append(
-        torch_cpp_ext.CUDAExtension(
-            name="flashinfer._decode",
-            sources=[
-                "csrc/single_decode.cu",
-                "csrc/flashinfer_ops_decode.cu",
-                "csrc/batch_decode.cu",
-            ]
-            + files_decode,
-            include_dirs=include_dirs,
-            extra_compile_args=extra_compile_args,
-        )
-    )
-    ext_modules.append(
-        torch_cpp_ext.CUDAExtension(
-            name="flashinfer._prefill",
-            sources=[
-                "csrc/single_prefill.cu",
-                "csrc/flashinfer_ops_prefill.cu",
-                "csrc/batch_prefill.cu",
-            ]
-            + files_prefill,
-            include_dirs=include_dirs,
-            extra_compile_args=extra_compile_args,
-        )
-    )
+    # ext_modules.append(
+    #     torch_cpp_ext.CUDAExtension(
+    #         name="flashinfer._decode",
+    #         sources=[
+    #             "csrc/single_decode.cu",
+    #             "csrc/flashinfer_ops_decode.cu",
+    #             "csrc/batch_decode.cu",
+    #         ]
+    #         + files_decode,
+    #         include_dirs=include_dirs,
+    #         extra_compile_args=extra_compile_args,
+    #     )
+    # )
+    # ext_modules.append(
+    #     torch_cpp_ext.CUDAExtension(
+    #         name="flashinfer._prefill",
+    #         sources=[
+    #             "csrc/single_prefill.cu",
+    #             "csrc/flashinfer_ops_prefill.cu",
+    #             "csrc/batch_prefill.cu",
+    #         ]
+    #         + files_prefill,
+    #         include_dirs=include_dirs,
+    #         extra_compile_args=extra_compile_args,
+    #     )
+    # )
     setuptools.setup(
         name="flashinfer",
         version=get_version(),
