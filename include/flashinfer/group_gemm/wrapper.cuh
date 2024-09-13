@@ -80,14 +80,12 @@ cudaError_t CutlassSegmentGEMMWrapper(CutlassSegmentGEMMHandler* handler, DType*
         float,                                   // Element Accumulator
         cutlass::arch::OpClassTensorOp,          // Operator Class Tag
         cutlass::arch::Sm80,                     // Architecture
-        // cutlass::gemm::GemmShape<128, 128, 32>,  // Thread Block Shape
-        // cutlass::gemm::GemmShape<64, 64, 32>,    // Warp Shape
-        cutlass::gemm::GemmShape<64, 64, 32>,  // Thread Block Shape
-        cutlass::gemm::GemmShape<32, 32, 32>,    // Warp Shape
+        cutlass::gemm::GemmShape<128, 128, 32>,  // Thread Block Shape
+        cutlass::gemm::GemmShape<64, 64, 32>,    // Warp Shape
         cutlass::gemm::GemmShape<16, 8, 16>,     // Instruction Shape
         cutlass::epilogue::thread::LinearCombination<DType, 8, float, float>,  // Epilogue
         cutlass::gemm::threadblock::GemmBatchedIdentityThreadblockSwizzle,     // Swizzling Operator
-        8                                                                      // Stages
+        4                                                                      // Stages
         >::GemmKernel;
 
     using EpilogueOutputOp = typename GemmKernel::Epilogue::OutputOp;

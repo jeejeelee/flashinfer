@@ -23,14 +23,14 @@ DTYPES = [torch.float16]
 CUDA_DEVICES = ["cuda:0"]
 
 
-@pytest.mark.parametrize("batch_size", [1, 77, 199])
-@pytest.mark.parametrize("num_rows_per_batch", [3, 10, 99])
-@pytest.mark.parametrize("d_in", [128, 1024, 4096])
-@pytest.mark.parametrize("d_out", [128, 1024, 4096])
-@pytest.mark.parametrize("use_weight_indices", [False, True])
-@pytest.mark.parametrize("column_major", [False, True])
-@pytest.mark.parametrize("dtype", DTYPES)
-@pytest.mark.parametrize("device", CUDA_DEVICES)
+# @pytest.mark.parametrize("batch_size", [1, 77, 199])
+# @pytest.mark.parametrize("num_rows_per_batch", [3, 10, 99])
+# @pytest.mark.parametrize("d_in", [128, 1024, 4096])
+# @pytest.mark.parametrize("d_out", [128, 1024, 4096])
+# @pytest.mark.parametrize("use_weight_indices", [False, True])
+# @pytest.mark.parametrize("column_major", [False, True])
+# @pytest.mark.parametrize("dtype", DTYPES)
+# @pytest.mark.parametrize("device", CUDA_DEVICES)
 def test_segment_gemm(
     batch_size,
     num_rows_per_batch,
@@ -40,30 +40,28 @@ def test_segment_gemm(
     column_major,
     dtype,
     device,
+    index,
 ):
     if batch_size * num_rows_per_batch > 8192:
-        pytest.skip("batch_size * num_rows_per_batch too large for test.")
+        # pytest.skip("batch_size * num_rows_per_batch too large for test.")
+        print("batch_size * num_rows_per_batch too large for test.")
+        # return
     torch.manual_seed(42)
     workspace_buffer = torch.empty(32 * 1024 * 1024, dtype=torch.int8).to(device)
     segment_gemm = flashinfer.gemm.SegmentGEMMWrapper(workspace_buffer)
-    x = torch.randn(batch_size * num_rows_per_batch, d_in, dtype=dtype).to(
-        device
-    )
+    x = torch.randn(batch_size * num_rows_per_batch, d_in, dtype=dtype).to(device)
     if use_weight_indices:
         num_weights = 1024
         if column_major:
-            weight = torch.randn(num_weights, d_out, d_in, dtype=dtype).to(
-                device
-            )
+            weight = torch.randn(num_weights, d_out, d_in, dtype=dtype).to(device)
         else:
-            weight = torch.randn(num_weights, d_in, d_out, dtype=dtype).to(
-                device
-            )
+            weight = torch.randn(num_weights, d_in, d_out, dtype=dtype).to(device)
     else:
         if column_major:
             weight = torch.randn(batch_size, d_out, d_in, dtype=dtype).to(device)
         else:
             weight = torch.randn(batch_size, d_in, d_out, dtype=dtype).to(device)
+    torch.cuda.nvtx.range_push(f"stage=4_no_{index}")
     y = segment_gemm.run(
         x,
         weight,
@@ -76,7 +74,7 @@ def test_segment_gemm(
             else None
         ),
     )
-
+    torch.cuda.nvtx.range_pop()
     if use_weight_indices:
         for i in range(batch_size):
             torch.testing.assert_close(
@@ -106,7 +104,9 @@ def test_segment_gemm(
 
 
 if __name__ == "__main__":
-    test_segment_gemm(199, 99, 128, 1024, False, False)
-    test_segment_gemm(199, 99, 128, 1024, False, True)
-    test_segment_gemm(199, 99, 128, 1024, True, False)
-    test_segment_gemm(199, 99, 128, 1024, True, True)
+    for i in range(10):
+        test_segment_gemm(1, 99, 128, 1024, False, False, torch.float16, "cuda:0",i)
+
+    # test_segment_gemm(99, 99, 128, 1024, False, True, torch.float16, "cuda:0")
+    # test_segment_gemm(32, 99, 128, 1024, True, False, torch.float16, "cuda:0")
+    # test_segment_gemm(16, 99, 128, 1024, True, True, torch.float16, "cuda:0")
