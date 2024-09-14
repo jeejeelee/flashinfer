@@ -325,6 +325,7 @@ if __name__ == "__main__":
             "-G",
             "--threads",
             "1",
+            "-lineinfo "
             # "-Xfatbin",
             # "-compress-all",
             # "-use_fast_math",
